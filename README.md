@@ -88,6 +88,26 @@ So funktioniert es im Ablauf:
 Ohne diese Einrichtung funktioniert das Glücksrad ganz normal weiter – nur die
 Live-Abstimmung zeigt dann einen freundlichen Hinweis statt eines QR-Codes.
 
+### Fehlerbehebung: "Zugriff verweigert" / "Verbindung fehlgeschlagen"
+
+Diese Meldung bedeutet fast immer, dass die Datenbank-Regeln Lesen/Schreiben
+ohne Anmeldung blockieren (Standard, falls beim Anlegen nicht "Testmodus"
+gewählt wurde). Beheben: Firebase-Konsole → "Build" → "Realtime Database" →
+Reiter **"Regeln"** → Inhalt ersetzen durch:
+
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+```
+
+Danach auf **"Veröffentlichen"** klicken. Das öffnet die Datenbank ganz
+bewusst ohne Login (siehe Hinweis zur Fairness unten) – für eine entspannte
+Abstimmung im kleinen Kreis ist das die richtige Einstellung.
+
 ### Hinweis zur Fairness / Manipulation
 
 Die Abstimmung ist für den entspannten Einsatz unter Freund:innen, Familie

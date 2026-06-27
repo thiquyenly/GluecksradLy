@@ -76,7 +76,12 @@ function init() {
 
     renderIdeas(data.ideas || {}, sessionRef);
   }, error => {
-    showStatus("⚠️ Verbindung fehlgeschlagen. Bitte WLAN/Mobilfunk prüfen und neu laden.");
+    if (error && error.code === "PERMISSION_DENIED") {
+      // Das ist KEIN WLAN-Problem, sondern fehlende Firebase-Regeln.
+      showStatus("⚠️ Zugriff verweigert. Die Datenbank-Regeln in Firebase müssen Lesen/Schreiben erlauben (siehe README).");
+    } else {
+      showStatus("⚠️ Verbindung fehlgeschlagen. Bitte WLAN/Mobilfunk prüfen und neu laden.");
+    }
     console.error(error);
   });
 

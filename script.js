@@ -434,9 +434,11 @@ function playApplause(durationMs = 3600) {
   if (!applauseAudio) {
     applauseAudio = new Audio("sounds/applause.mp3");
     applauseAudio.preload = "auto";
+    applauseAudio.volume = 1;
   }
   // Versuchen, die Datei abzuspielen
   applauseAudio.currentTime = 0;
+  applauseAudio.volume = 1;
   const attempt = applauseAudio.play();
   if (attempt && attempt.catch) {
     attempt.catch(() => {
@@ -444,6 +446,33 @@ function playApplause(durationMs = 3600) {
       playSyntheticApplause(durationMs);
     });
   }
+  limitApplauseTo(5000); // Datei kann länger sein – hier hart auf 5s begrenzen
+}
+
+/* Schneidet die Applaus-MP3 auf eine feste Länge zu: blendet in den letzten
+   500ms sanft aus und pausiert sie dann, statt sie hart abzuschneiden. */
+let applauseLimitTimer = null;
+let applauseFadeTimer = null;
+function limitApplauseTo(maxMs) {
+  clearTimeout(applauseLimitTimer);
+  clearInterval(applauseFadeTimer);
+
+  const fadeStart = Math.max(maxMs - 500, 0);
+  applauseFadeTimer = setTimeout(() => {
+    const steps = 10;
+    let i = 0;
+    const fade = setInterval(() => {
+      i++;
+      applauseAudio.volume = Math.max(1 - i / steps, 0);
+      if (i >= steps) clearInterval(fade);
+    }, 500 / steps);
+    applauseFadeTimer = fade;
+  }, fadeStart);
+
+  applauseLimitTimer = setTimeout(() => {
+    applauseAudio.pause();
+    applauseAudio.currentTime = 0;
+  }, maxMs);
 }
 
 /* Ersatz-Applaus, falls keine MP3 hinterlegt ist (rein im Browser erzeugt) */
@@ -766,6 +795,14 @@ function openLiveVoting() {
     question,
     factorMode: el.liveFactorMode.checked,
     ideas: ideasSeed,
+  }).catch(error => {
+    el.liveOverlay.hidden = true;
+    if (error && error.code === "PERMISSION_DENIED") {
+      showSpinMessage("Firebase blockiert den Zugriff – Datenbank-Regeln auf Lesen/Schreiben=true stellen (siehe README).");
+    } else {
+      showSpinMessage("Verbindung zu Firebase fehlgeschlagen. Bitte Internet prüfen.");
+    }
+    console.error(error);
   });
 
   const voteUrl = buildVoteUrl(liveSessionId);
@@ -777,6 +814,11 @@ function openLiveVoting() {
   // Live-Listener: läuft bei jeder Änderung erneut (neue Idee, neue Stimme)
   liveSessionRef.child("ideas").on("value", snapshot => {
     renderLiveIdeas(snapshot.val() || {});
+  }, error => {
+    if (error && error.code === "PERMISSION_DENIED") {
+      showSpinMessage("Firebase blockiert den Zugriff – Datenbank-Regeln auf Lesen/Schreiben=true stellen (siehe README).");
+    }
+    console.error(error);
   });
 }
 
