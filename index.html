@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--
+  GLÜCKSRAD MIT ABSTIMMUNGSFAKTOR
+  ================================
+  Diese Datei (index.html) ist das GERÜST der App.
+  Sie definiert, WELCHE Elemente es gibt. Das Aussehen kommt aus style.css,
+  die Logik (Drehen, Töne, Gewinner berechnen) aus script.js.
+-->
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Glücksrad – mit Abstimmungsfaktor</title>
+
+  <!-- Schriftarten aus dem Internet laden (Arcade-/Show-Look) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Eigene Gestaltung -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- Dekorative Hintergrund-Lichter der "Spielhalle" -->
+  <div class="ambient" aria-hidden="true"></div>
+
+  <!-- Start-Bildschirm: nötig, damit der Browser Ton erlaubt -->
+  <div id="start-overlay" class="start-overlay">
+    <div class="start-card">
+      <!-- Logo im Stil des Glücksrad-Schriftzugs: farbiges Rad + goldenes Oval -->
+      <svg class="start-logo" viewBox="0 0 600 480" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="Glücksrad Logo">
+        <g id="logo-wheel"></g>
+        <!-- Goldgerahmtes Oval quer über dem Rad -->
+        <rect x="20" y="195" width="560" height="110" rx="55"
+              fill="#ffffff" stroke="#b8912e" stroke-width="6"/>
+        <text x="300" y="280" text-anchor="middle"
+              font-family="Bungee, sans-serif" font-size="86"
+              fill="#e8c875" stroke="#8a6c1f" stroke-width="3"
+              paint-order="stroke fill" letter-spacing="2">GLÜCKSRAD</text>
+      </svg>
+
+      <!-- Humorvolle Kurzerklärung mit Emoji als Piktogramme -->
+      <div class="pitch">
+        <p class="pitch-line"><span class="pitch-icon">🤔</span> Mal wieder keine Einigung in Sicht? Kennen wir.</p>
+        <p class="pitch-line"><span class="pitch-icon">💡</span> So viele Ideen, so viele Wünsche – und alle wollen mitreden.</p>
+        <p class="pitch-line"><span class="pitch-icon">⚖️</span> Aber fair soll's am Ende trotzdem bleiben.</p>
+        <p class="pitch-line pitch-line--highlight"><span class="pitch-icon">🎡</span> Genau dafür gibt's das legendäre Glücksrad!</p>
+        <p class="pitch-line"><span class="pitch-icon">📱</span> Scannt gleich den QR-Code: Reicht eure eigene Idee ein oder stimmt für einen Vorschlag ab.</p>
+        <p class="pitch-line"><span class="pitch-icon">🎯</span> Ob Stimmen auch die Gewinnchance erhöhen, entscheidet ihr selbst.</p>
+        <p class="pitch-line pitch-line--highlight"><span class="pitch-icon">🚀</span> Los geht's!</p>
+      </div>
+
+      <p class="start-text">Klicke, um das legendäre Glücksrad zu starten!</p>
+      <p class="start-subtext">Klick schaltet den Ton frei.</p>
+      <button id="start-btn" type="button" class="btn btn--spin">LOS GEHT'S</button>
+    </div>
+  </div>
+
+  <main class="layout">
+
+    <!-- ==================== KOPFBEREICH ==================== -->
+    <header class="topbar">
+      <h1 class="logo">
+        <span class="logo-word">GLÜCKS</span><span class="logo-word logo-word--alt">RAD</span>
+      </h1>
+      <p class="tagline">Stell eine Frage. Gewichte die Antworten. Dreh am Rad.</p>
+    </header>
+
+    <!-- ==================== ARBEITSBEREICH ==================== -->
+    <!-- Zweispaltig: links Eingabe, rechts das Rad -->
+    <div class="stage">
+
+      <!-- ----- LINKE SPALTE: Eingabe ----- -->
+      <section class="panel" aria-label="Eingabe">
+        <label class="field">
+          <span class="field-label">Deine Frage</span>
+          <input id="question" type="text" class="text-input"
+                 placeholder="Was essen wir heute Abend?" maxlength="120" />
+        </label>
+
+        <div class="field">
+          <span class="field-label">Antwortmöglichkeiten</span>
+          <p class="hint">
+            Der <strong>Faktor</strong> ist der Abstimmungswert: Eine Antwort mit
+            Faktor 5 gewinnt fünfmal so wahrscheinlich wie eine mit Faktor 1.
+          </p>
+
+          <!-- Auslöser für die Live-Abstimmung per QR-Code (siehe firebase-config.js) -->
+          <button id="open-live" type="button" class="btn btn--ghost btn--live">
+            📱 Live-Abstimmung per QR-Code starten
+          </button>
+          <p class="hint hint--live">
+            Alle scannen den QR-Code mit dem eigenen Handy, reichen eine Idee ein
+            oder stimmen für einen Vorschlag ab. Läuft über eine kostenlose
+            Cloud-Datenbank (Firebase) im Hintergrund – die App selbst bleibt
+            reiner HTML/CSS/JS-Frontend-Code.
+          </p>
+
+          <!-- Spaltenüberschrift: macht auf den ersten Blick klar, wofür die zwei Felder pro Zeile sind -->
+          <div class="answer-list-header" aria-hidden="true">
+            <span class="answer-list-header__spacer"></span>
+            <span class="answer-list-header__label">Antwort</span>
+            <span class="answer-list-header__label answer-list-header__label--factor">Faktor</span>
+            <span class="answer-list-header__spacer answer-list-header__spacer--end"></span>
+          </div>
+          <!-- Hierhin schreibt JavaScript die Antwort-Zeilen -->
+          <ul id="answer-list" class="answer-list"></ul>
+          <div class="answer-actions">
+            <button id="add-answer" type="button" class="btn btn--ghost">
+              + Antwort hinzufügen
+            </button>
+            <button id="spin" type="button" class="btn btn--spin">DREHEN</button>
+          </div>
+        </div>
+
+        <!-- Schalter -->
+        <div class="options">
+          <label class="switch">
+            <input id="opt-proportional" type="checkbox" />
+            <span>Tortenstücke nach Faktor vergrößern</span>
+          </label>
+          <label class="switch">
+            <input id="opt-sound" type="checkbox" checked />
+            <span>Sound an</span>
+          </label>
+        </div>
+
+        <!-- Eigene Fehlermeldung statt Browser-alert(), erscheint bei Bedarf -->
+        <p id="spin-message" class="spin-message" role="alert" hidden></p>
+      </section>
+
+      <!-- ----- RECHTE SPALTE: Das Rad ----- -->
+      <section class="panel panel--wheel" aria-label="Glücksrad">
+        <!-- Kranz aus blinkenden Glühbirnen -->
+        <div id="bulbs" class="bulbs" aria-hidden="true"></div>
+
+        <!-- Flexibler Zeiger oben, der gegen die Stäbe schlägt -->
+        <div id="flapper" class="flapper" aria-hidden="true">
+          <svg viewBox="0 0 36 64"><path d="M18 64 L3 11 Q18 0 33 11 Z" fill="#ff2e9a"/></svg>
+        </div>
+
+        <!-- Das eigentliche Rad. JavaScript zeichnet hier die Segmente per SVG. -->
+        <div class="wheel-wrap">
+          <!-- Leuchtender Strahlenkranz hinter dem Rad -->
+          <div id="rays" class="rays" aria-hidden="true"></div>
+          <svg id="wheel" class="wheel" viewBox="0 0 400 400" role="img"
+               aria-label="Drehbares Glücksrad"></svg>
+          <!-- Goldene Stäbe am Rand (von JavaScript erzeugt) -->
+          <div id="pins" class="pins" aria-hidden="true"></div>
+          <!-- Nabe in der Mitte -->
+          <div class="hub" aria-hidden="true"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================== ERGEBNIS-ANZEIGE ==================== -->
+    <!-- Standardmäßig versteckt; erscheint nach dem Stopp. -->
+    <div id="result-overlay" class="overlay" hidden>
+      <!-- Konfetti wird auf dieses Canvas gezeichnet -->
+      <canvas id="confetti" class="confetti" aria-hidden="true"></canvas>
+      <div class="result-card">
+        <p class="result-kicker">Die Gewinner-Antwort lautet</p>
+        <p id="result-answer" class="result-answer">—</p>
+        <button id="result-close" type="button" class="btn btn--ghost">Nochmal</button>
+      </div>
+    </div>
+
+    <!-- ==================== LIVE-ABSTIMMUNG PER QR-CODE ==================== -->
+    <div id="live-overlay" class="overlay" hidden>
+      <div class="live-card">
+        <p class="live-kicker">Live-Abstimmung läuft</p>
+        <h2 id="live-question" class="live-question">—</h2>
+
+        <div class="live-qr-block">
+          <img id="live-qr" class="live-qr" alt="QR-Code zum Mitmachen" />
+          <p class="live-link-hint">
+            Oder Link teilen:<br /><span id="live-url" class="live-url">—</span>
+          </p>
+        </div>
+
+        <label class="switch live-factor-toggle">
+          <input id="live-factor-mode" type="checkbox" checked />
+          <span>Stimmen erhöhen die Gewinnchance (Abstimmungsfaktor)</span>
+        </label>
+
+        <!-- Hierhin schreibt JavaScript die live eintrudelnden Ideen -->
+        <div id="live-ideas" class="live-ideas">
+          <p class="live-empty">Noch keine Ideen eingereicht …</p>
+        </div>
+
+        <div class="live-actions">
+          <button id="live-cancel" type="button" class="btn btn--ghost">Abbrechen</button>
+          <button id="live-finish" type="button" class="btn btn--spin">
+            Beenden &amp; Rad vorbereiten
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Firebase: ermöglicht die Live-Abstimmung über mehrere Geräte hinweg.
+       Reine Frontend-Einbindung – kein eigener Server-Code nötig. -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <!-- Logik zuletzt laden, damit alle HTML-Elemente schon existieren -->
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<!--
+  TEILNEHMENDEN-SEITE (vote.html)
+  ================================
+  Diese Seite öffnet sich, wenn jemand den QR-Code scannt. Sie liest die
+  Sitzungs-Kennung aus der URL (?session=ABC123), verbindet sich mit
+  genau diesem Datensatz in Firebase und zeigt die aktuelle Frage sowie
+  alle bisher eingereichten Ideen live an.
+-->
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mitmachen – Glücksrad</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet" />
+
+  <!-- Gleiche Gestaltung wie die Hauptseite, für ein einheitliches Erscheinungsbild -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <main class="vote-layout">
+    <h1 class="vote-logo">🎡 GLÜCKSRAD</h1>
+
+    <div class="vote-card">
+      <!-- Solange noch keine Verbindung steht oder etwas schiefgeht -->
+      <p id="vote-status" class="vote-status">Verbinde mit der Abstimmung …</p>
+
+      <!-- Erscheint, sobald die Sitzung gefunden wurde -->
+      <h2 id="vote-question" class="vote-question" hidden>—</h2>
+
+      <!-- Hierhin schreibt JavaScript die Ideen-Kacheln zum Abstimmen -->
+      <div id="vote-ideas" class="vote-ideas" hidden></div>
+
+      <!-- Eigene Idee einreichen -->
+      <form id="vote-form" class="vote-form" hidden>
+        <input id="vote-input" type="text" class="text-input"
+               placeholder="Eigene Idee eingeben …" maxlength="40" />
+        <button type="submit" class="btn btn--spin">+ Idee einreichen</button>
+      </form>
+
+      <p id="vote-thanks" class="vote-thanks" hidden></p>
+    </div>
+  </main>
+
+  <!-- Firebase: dieselbe Anbindung wie auf der Hauptseite -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="vote.js"></script>
+</body>
+</html>

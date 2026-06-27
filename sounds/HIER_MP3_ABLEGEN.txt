@@ -1,0 +1,30 @@
+EIGENE SOUND-DATEIEN HIER ABLEGEN
+=================================
+
+Du kannst in diesem Ordner eigene MP3-Dateien ablegen. Benenne sie GENAU so:
+
+  applause.mp3   -> echter Applaus + Jubel (wird beim Gewinner gespielt)
+  welcome.mp3    -> gesprochene Begrüßung (wird beim Start gespielt)
+  music.mp3      -> motivierende Hintergrundmusik (läuft im Hintergrund)
+
+Fehlt eine Datei, erzeugt die App einen Ersatz selbst:
+- ohne welcome.mp3 spricht die eingebaute Browser-Stimme den Begrüßungssatz
+- ohne music.mp3 spielt die App eine erzeugte Melodie
+- ohne applause.mp3 erzeugt die App einen Ersatz-Applaus
+
+Kostenlose Sounds gibt es z. B. auf:
+- pixabay.com/sound-effects
+- freesound.org
+Achte auf eine Lizenz, die du nutzen darfst (z. B. CC0 / frei nutzbar).
+
+WICHTIG - warum kommt manchmal kein Ton aus den MP3-Dateien?
+Wenn du index.html nur per Doppelklick öffnest, blockieren viele Browser
+das Laden lokaler Dateien (Sicherheitsregel). Lösung: einen kleinen lokalen
+Server starten. Öffne im Ordner gluecksrad ein Terminal und tippe:
+
+  python -m http.server
+
+Dann im Browser aufrufen:  http://localhost:8000
+
+Über diesen Weg funktionieren applause.mp3, welcome.mp3 und music.mp3
+zuverlässig.
