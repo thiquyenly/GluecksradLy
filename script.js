@@ -457,6 +457,15 @@ function limitApplauseTo(maxMs) {
   }, maxMs);
 }
 
+/* Stoppt den Applaus sofort, z. B. wenn das Ergebnis-Fenster geschlossen wird */
+function stopApplause() {
+  clearTimeout(applauseLimitTimer);
+  if (applauseAudio) {
+    applauseAudio.pause();
+    applauseAudio.currentTime = 0;
+  }
+}
+
 /* Ersatz-Applaus, falls keine MP3 hinterlegt ist (rein im Browser erzeugt) */
 function playSyntheticApplause(durationMs = 3600) {
   const ctx = getAudio();
@@ -922,6 +931,7 @@ function init() {
   el.optProportional.addEventListener("change", drawWheel);
   el.resultClose.addEventListener("click", () => {
     el.overlay.hidden = true;
+    stopApplause(); // Applaus sofort beenden, nicht bis zum Ende weiterlaufen lassen
     if (el.optSound.checked) startBackgroundMusic(); // Musik wieder an
   });
 
