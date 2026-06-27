@@ -434,11 +434,9 @@ function playApplause(durationMs = 3600) {
   if (!applauseAudio) {
     applauseAudio = new Audio("sounds/applause.mp3");
     applauseAudio.preload = "auto";
-    applauseAudio.volume = 1;
   }
   // Versuchen, die Datei abzuspielen
   applauseAudio.currentTime = 0;
-  applauseAudio.volume = 1;
   const attempt = applauseAudio.play();
   if (attempt && attempt.catch) {
     attempt.catch(() => {
@@ -446,29 +444,13 @@ function playApplause(durationMs = 3600) {
       playSyntheticApplause(durationMs);
     });
   }
-  limitApplauseTo(5000); // Datei kann länger sein – hier hart auf 5s begrenzen
+  limitApplauseTo(15000); // Datei kann länger sein – hier hart auf 15s begrenzen
 }
 
-/* Schneidet die Applaus-MP3 auf eine feste Länge zu: blendet in den letzten
-   500ms sanft aus und pausiert sie dann, statt sie hart abzuschneiden. */
+/* Stoppt die Applaus-MP3 nach einer festen Dauer, ohne Überblendung. */
 let applauseLimitTimer = null;
-let applauseFadeTimer = null;
 function limitApplauseTo(maxMs) {
   clearTimeout(applauseLimitTimer);
-  clearInterval(applauseFadeTimer);
-
-  const fadeStart = Math.max(maxMs - 500, 0);
-  applauseFadeTimer = setTimeout(() => {
-    const steps = 10;
-    let i = 0;
-    const fade = setInterval(() => {
-      i++;
-      applauseAudio.volume = Math.max(1 - i / steps, 0);
-      if (i >= steps) clearInterval(fade);
-    }, 500 / steps);
-    applauseFadeTimer = fade;
-  }, fadeStart);
-
   applauseLimitTimer = setTimeout(() => {
     applauseAudio.pause();
     applauseAudio.currentTime = 0;

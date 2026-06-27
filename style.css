@@ -40,24 +40,25 @@ body {
 .start-overlay.hidden { display: none; }
 .start-card {
   text-align: center;
-  padding: 32px 36px;
-  width: min(560px, 92vw);
-  max-height: 92vh;
+  padding: 26px 40px;
+  width: min(640px, 94vw);
+  max-height: 94vh;
   overflow-y: auto;
 }
 .start-logo {
-  width: min(220px, 50vw);
+  width: min(300px, 70vw);
   height: auto;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   filter: drop-shadow(0 0 18px rgba(255,210,63,.45)) drop-shadow(0 0 36px rgba(0,0,0,.5));
 }
 
 /* Humorvolle Kurzerklärung mit Emoji-Piktogrammen */
 .pitch {
   display: grid;
-  gap: 10px;
+  gap: 7px;
   text-align: left;
-  margin: 14px 0 22px;
+  margin: 4px auto 16px;
+  max-width: 460px;
 }
 .pitch-line {
   display: flex;
