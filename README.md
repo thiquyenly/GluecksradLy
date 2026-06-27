@@ -18,10 +18,15 @@ Sobald das Projekt über GitHub Pages veröffentlicht ist, läuft es unter:
 
 - Eigene Frage und beliebig viele Antwortmöglichkeiten eingeben
 - Abstimmungsfaktor pro Antwort: höherer Faktor = höhere Gewinnchance
-- **Live-Abstimmung per QR-Code:** Alle im Raum scannen den Code mit dem
-  eigenen Handy, reichen eigene Ideen ein oder stimmen für Vorschläge ab.
-  Die Stimmen werden live gesammelt und können als Abstimmungsfaktor
-  übernommen werden (oder bewusst gleich gewichtet bleiben).
+- **Zwei Wege, gemeinsam abzustimmen, bevor das Rad sich dreht:**
+  - 🙋 **Im Raum, ohne Internet/Datenbank:** Ein Gerät geht herum, jede
+    Person tippt einmal. Die Stimmen leben nur im Arbeitsspeicher des
+    Browsers – es gibt keine Datenbank, keinen Server, keine Datei.
+  - 📱 **Per QR-Code, über Firebase:** Alle scannen den Code mit dem
+    eigenen Handy, reichen Ideen ein oder stimmen ab – auch von
+    unterwegs, unabhängig vom Aufenthaltsort.
+  
+  Beide Wege füllen am Ende automatisch den Abstimmungsfaktor.
 - Glücksrad im Spielhallen-Look mit Neon, leuchtenden Stäben und Lichtern
 - Drehung über 8 Sekunden mit Spannungston und dem typischen Klack-Geräusch
 - Gewinner-Anzeige mit Fanfare, Applaus, Konfetti und goldenem Feuerwerk
@@ -54,6 +59,28 @@ Im Code erledigt das die Funktion `pickWinnerIndex` in `script.js`.
 | `vote.js`            | Logik der Abstimmungsseite (Idee/Stimme abgeben)    |
 | `firebase-config.js` | Eigene Firebase-Zugangsdaten (hier eintragen!)      |
 | `sounds/`            | Ordner für optionale eigene Sounddateien            |
+
+## Zwei Abstimmungswege – und warum es beide gibt
+
+Die App bietet bewusst zwei unabhängige Wege an, die jeweils ein anderes
+Problem lösen:
+
+**Variante A – "Im Raum abstimmen" (ohne Datenbank).** Ohne Datenbank
+existieren Stimmabgaben nur im Browser der jeweiligen Person. Diese Variante
+löst das trotzdem: Ein Gerät geht im Raum herum (oder eine Person tippt
+stellvertretend für jede Wortmeldung), die Stimmen werden direkt in einer
+JavaScript-Variable im Arbeitsspeicher gezählt. Voraussetzung: alle befinden
+sich im selben Raum. Es wird keine Datenbank, kein Server und keine externe
+Bibliothek benötigt – reines HTML/CSS/JS.
+
+**Variante B – "Per QR-Code abstimmen" (mit Firebase).** Damit auch Personen
+abstimmen können, die nicht im selben Raum sind, nutzt diese Variante eine
+kostenlose Cloud-Datenbank (Firebase) als gemeinsamen Treffpunkt im Netz. Das
+geht über das hinaus, was Variante A kann: Abstimmung funktioniert von
+überall mit Internetzugang, nicht nur vor Ort.
+
+Beide Varianten füllen am Ende denselben Abstimmungsfaktor – nur der Weg
+dorthin unterscheidet sich.
 
 ## Live-Abstimmung per QR-Code einrichten (Firebase)
 

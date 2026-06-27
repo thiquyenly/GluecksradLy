@@ -85,17 +85,29 @@
           <p class="hint">
             Der <strong>Faktor</strong> ist der Abstimmungswert: Eine Antwort mit
             Faktor 5 gewinnt fünfmal so wahrscheinlich wie eine mit Faktor 1.
+            Beide Abstimmungswege unten füllen diesen Faktor automatisch aus.
           </p>
 
-          <!-- Auslöser für die Live-Abstimmung per QR-Code (siehe firebase-config.js) -->
-          <button id="open-live" type="button" class="btn btn--ghost btn--live">
-            📱 Live-Abstimmung per QR-Code starten
+          <span class="field-label field-label--small">Vorher gemeinsam abstimmen (optional)</span>
+
+          <!-- Variante A: ohne Internet/Datenbank, Gerät geht im Raum herum -->
+          <button id="open-room" type="button" class="btn btn--ghost btn--vote-option">
+            🙋 Im Raum abstimmen <span class="vote-option-tag">ohne Internet · ohne Datenbank</span>
+          </button>
+          <p class="hint hint--live">
+            Ein Gerät reicht im Raum herum (oder die moderierende Person tippt für
+            jede Wortmeldung). Die Stimmen werden nur im Arbeitsspeicher dieses
+            einen Browsers gezählt – es gibt keine Datenbank im Hintergrund.
+          </p>
+
+          <!-- Variante B: per QR-Code über Firebase (siehe firebase-config.js) -->
+          <button id="open-live" type="button" class="btn btn--ghost btn--vote-option">
+            📱 Per QR-Code abstimmen <span class="vote-option-tag">über Internet · mit Firebase</span>
           </button>
           <p class="hint hint--live">
             Alle scannen den QR-Code mit dem eigenen Handy, reichen eine Idee ein
-            oder stimmen für einen Vorschlag ab. Läuft über eine kostenlose
-            Cloud-Datenbank (Firebase) im Hintergrund – die App selbst bleibt
-            reiner HTML/CSS/JS-Frontend-Code.
+            oder stimmen für einen Vorschlag ab – auch von unterwegs, nicht nur im
+            selben Raum. Läuft über eine kostenlose Cloud-Datenbank (Firebase).
           </p>
 
           <!-- Spaltenüberschrift: macht auf den ersten Blick klar, wofür die zwei Felder pro Zeile sind -->
@@ -164,6 +176,31 @@
         <p class="result-kicker">Die Gewinner-Antwort lautet</p>
         <p id="result-answer" class="result-answer">—</p>
         <button id="result-close" type="button" class="btn btn--ghost">Nochmal</button>
+      </div>
+    </div>
+
+    <!-- ==================== ABSTIMMUNG IM RAUM (OHNE DATENBANK) ==================== -->
+    <!-- Die Stimmen leben ausschließlich in diesen JavaScript-Variablen im
+         Arbeitsspeicher dieses einen Browsers – keine Datenbank, kein Server. -->
+    <div id="room-overlay" class="overlay" hidden>
+      <div class="live-card">
+        <p class="live-kicker">Abstimmung im Raum · ohne Internet · ohne Datenbank</p>
+        <h2 id="room-question" class="live-question">—</h2>
+        <p class="vote-status" style="padding:0; margin-bottom:14px; font-size:13px;">
+          Gerät weitergeben – jede Person tippt einmal auf ihre Antwort.
+        </p>
+
+        <!-- Hierhin schreibt JavaScript die Antwort-Kacheln -->
+        <div id="room-options" class="vote-ideas"></div>
+
+        <p id="room-tally" class="live-empty">Noch keine Stimme abgegeben.</p>
+
+        <div class="live-actions">
+          <button id="room-cancel" type="button" class="btn btn--ghost">Abbrechen</button>
+          <button id="room-finish" type="button" class="btn btn--spin">
+            Beenden &amp; Faktoren übernehmen
+          </button>
+        </div>
       </div>
     </div>
 

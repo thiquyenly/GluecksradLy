@@ -46,6 +46,13 @@ const el = {
   liveIdeas:   document.getElementById("live-ideas"),
   liveCancelBtn: document.getElementById("live-cancel"),
   liveFinishBtn: document.getElementById("live-finish"),
+  openRoomBtn: document.getElementById("open-room"),
+  roomOverlay: document.getElementById("room-overlay"),
+  roomQuestion: document.getElementById("room-question"),
+  roomOptions: document.getElementById("room-options"),
+  roomTally:   document.getElementById("room-tally"),
+  roomCancelBtn: document.getElementById("room-cancel"),
+  roomFinishBtn: document.getElementById("room-finish"),
 };
 
 /* ---- C. Zustand der App ---- */
@@ -736,6 +743,89 @@ function buildPins(count) {
 }
 
 /* =====================================================================
+   K0. ABSTIMMUNG IM RAUM (OHNE DATENBANK, OHNE INTERNET)
+   ---------------------------------------------------------------------
+   Bewusst die "einfache" Variante: Die Stimmen leben ausschließlich in der
+   Variable `roomTally` im Arbeitsspeicher DIESES EINEN Browsers. Es gibt
+   keinen Server, keine Datenbank, keine Datei, die etwas speichert – sobald
+   die Seite neu geladen wird, sind die Stimmen wieder weg. Genau das ist
+   hier gewollt: ein Prozess, der mehrere Stimmen auswertet, OHNE dafür
+   eine Datenbank zu brauchen (Voraussetzung: alle sind im selben Raum und
+   teilen sich entweder das Gerät oder eine Person tippt stellvertretend).
+   ===================================================================== */
+let roomTally = [];
+
+/* Während eine Abstimmung läuft, dürfen Antworten nicht verändert werden,
+   sonst würden die Stimmen-Indizes nicht mehr zu den Antworten passen. */
+function setAnswerEditingLocked(locked) {
+  el.addAnswer.disabled = locked;
+  el.openRoomBtn.disabled = locked;
+  el.openLiveBtn.disabled = locked;
+  el.answerList.querySelectorAll(".answer-text, .answer-factor, .remove-answer")
+    .forEach(elInput => { elInput.disabled = locked; });
+}
+
+function openRoomVoting() {
+  const answers = readAnswers();
+  if (answers.length < 2) {
+    showSpinMessage("Bitte mindestens zwei Antworten eingeben, bevor die Abstimmung startet.");
+    return;
+  }
+
+  roomTally = answers.map(() => 0);
+  el.roomQuestion.textContent = el.question.value.trim() || "Worüber stimmen wir ab?";
+  renderRoomOptions(answers);
+  updateRoomTallyLabel();
+  el.roomOverlay.hidden = false;
+  setAnswerEditingLocked(true);
+}
+
+/* Zeichnet eine tippbare Kachel pro Antwort (gleiche Optik wie vote.html) */
+function renderRoomOptions(answers) {
+  el.roomOptions.innerHTML = "";
+  answers.forEach((a, i) => {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "vote-idea";
+    tile.innerHTML = `
+      <span class="vote-idea__text">${escapeHtml(a.text)}</span>
+      <span class="vote-idea__votes" data-room-count="${i}">0</span>
+    `;
+    tile.addEventListener("click", () => {
+      roomTally[i]++;
+      tile.querySelector("[data-room-count]").textContent = roomTally[i];
+      tile.classList.add("vote-pulse");
+      setTimeout(() => tile.classList.remove("vote-pulse"), 250);
+      updateRoomTallyLabel();
+    });
+    el.roomOptions.appendChild(tile);
+  });
+}
+
+function updateRoomTallyLabel() {
+  const total = roomTally.reduce((sum, v) => sum + v, 0);
+  el.roomTally.textContent = total === 0
+    ? "Noch keine Stimme abgegeben."
+    : `${total} ${total === 1 ? "Stimme" : "Stimmen"} insgesamt abgegeben.`;
+}
+
+/* Beendet die Abstimmung. Bei applyResults=true werden die gezählten
+   Stimmen direkt als Abstimmungsfaktor in die Antwortliste übernommen. */
+function closeRoomVoting(applyResults) {
+  if (applyResults) {
+    const rows = [...el.answerList.querySelectorAll(".answer-row")];
+    rows.forEach((row, i) => {
+      const factorInput = row.querySelector(".answer-factor");
+      factorInput.value = Math.max(1, roomTally[i] || 0);
+    });
+    drawWheel();
+  }
+  el.roomOverlay.hidden = true;
+  setAnswerEditingLocked(false);
+  roomTally = [];
+}
+
+/* =====================================================================
    K. LIVE-ABSTIMMUNG PER QR-CODE (Firebase)
    ---------------------------------------------------------------------
    Ein "Sitzungs"-Datensatz in Firebase verbindet das Gastgeber-Gerät mit
@@ -788,6 +878,7 @@ function openLiveVoting() {
     ideas: ideasSeed,
   }).catch(error => {
     el.liveOverlay.hidden = true;
+    setAnswerEditingLocked(false);
     if (error && error.code === "PERMISSION_DENIED") {
       showSpinMessage("Firebase blockiert den Zugriff – Datenbank-Regeln auf Lesen/Schreiben=true stellen (siehe README).");
     } else {
@@ -801,6 +892,7 @@ function openLiveVoting() {
   el.liveUrl.textContent = voteUrl;
   el.liveQuestion.textContent = question;
   el.liveOverlay.hidden = false;
+  setAnswerEditingLocked(true);
 
   // Live-Listener: läuft bei jeder Änderung erneut (neue Idee, neue Stimme)
   liveSessionRef.child("ideas").on("value", snapshot => {
@@ -840,7 +932,7 @@ function renderLiveIdeas(ideasObj) {
 /* Beendet die Live-Sitzung. Bei applyResults=true werden die zuletzt
    bekannten Ideen+Stimmen als neue Antwortliste samt Faktoren übernommen. */
 function closeLiveVoting(applyResults) {
-  if (!liveSessionRef) { el.liveOverlay.hidden = true; return; }
+  if (!liveSessionRef) { el.liveOverlay.hidden = true; setAnswerEditingLocked(false); return; }
 
   liveSessionRef.child("ideas").off("value");
 
@@ -854,6 +946,7 @@ function closeLiveVoting(applyResults) {
   }
 
   el.liveOverlay.hidden = true;
+  setAnswerEditingLocked(false);
   liveSessionId = null;
   liveSessionRef = null;
 }
@@ -951,6 +1044,11 @@ function init() {
   el.openLiveBtn.addEventListener("click", openLiveVoting);
   el.liveCancelBtn.addEventListener("click", () => closeLiveVoting(false));
   el.liveFinishBtn.addEventListener("click", () => closeLiveVoting(true));
+
+  // Abstimmung im Raum (ohne Datenbank)
+  el.openRoomBtn.addEventListener("click", openRoomVoting);
+  el.roomCancelBtn.addEventListener("click", () => closeRoomVoting(false));
+  el.roomFinishBtn.addEventListener("click", () => closeRoomVoting(true));
 }
 
 init();

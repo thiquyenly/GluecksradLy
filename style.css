@@ -162,6 +162,13 @@ body {
   text-transform: uppercase;
   font-size: 13px;
 }
+/* Kleinere Zwischenüberschrift, z. B. über den beiden Abstimmungs-Optionen */
+.field-label--small {
+  font-size: 11px;
+  color: var(--ink-dim);
+  margin-bottom: 6px;
+  margin-top: 4px;
+}
 .hint { color: var(--ink-dim); font-size: 13px; margin-bottom: 12px; }
 .hint strong { color: var(--neon-lime); }
 
@@ -508,10 +515,22 @@ body {
    ===================================================================== */
 
 /* Auslöse-Button im Eingabebereich */
-.btn--live {
+.btn--vote-option {
   width: 100%;
   margin-bottom: 6px;
   border: 1px solid rgba(255,210,63,.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vote-option-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-transform: none;
+  letter-spacing: 0;
 }
 .hint--live { margin-top: 2px; margin-bottom: 16px; }
 
@@ -579,6 +598,7 @@ body {
 }
 /* Kurzer Aufleucht-Effekt, wenn sich eine Zeile aktualisiert */
 .live-idea-row.pulse { animation: vote-pulse .35s ease; }
+.vote-idea.vote-pulse { animation: vote-pulse .25s ease; }
 @keyframes vote-pulse {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.02); background: rgba(255,210,63,.16); }
